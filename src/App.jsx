@@ -16,6 +16,7 @@ function App() {
   const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   useEffect(() => {
+    // Load search history from localStorage on component mount
     const savedHistory = localStorage.getItem('searchHistory');
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
@@ -26,11 +27,13 @@ function App() {
     try {
       setLoading(true);
       setError('');
+      // Fetch current weather data
       const weatherResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
       );
       setWeather(weatherResponse.data);
 
+      // Fetch 5-day forecast data
       const forecastResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
       );
@@ -39,6 +42,7 @@ function App() {
       );
       setForecast(dailyForecast);
 
+      // Update search history
       const newHistory = [cityName, ...history.filter(item => item !== cityName)].slice(0, 5);
       setHistory(newHistory);
       localStorage.setItem('searchHistory', JSON.stringify(newHistory));
@@ -57,20 +61,22 @@ function App() {
         ? 'bg-gradient-to-br from-purple-950 via-violet-900 to-purple-950' 
         : 'bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500'
     }`}>
+      {/* Header Component */}
+      <Header darkMode={darkMode} setDarkMode={setDarkMode} />
       
-        <Header darkMode={darkMode} setDarkMode={setDarkMode} />
-        <div className='relative justify-center items-center mt-10'>
+      {/* Search Bar */}
+      <div className='relative justify-center items-center mt-10'>
         <SearchBar city={city} setCity={setCity} fetchWeather={fetchWeather} />
-        </div>
-        <WeatherDisplay 
-          weather={weather} 
-          loading={loading} 
-          error={error} 
-          darkMode={darkMode} 
-          forecast={forecast} // Pass forecast data
-        />
-        
-        
+      </div>
+      
+      {/* Weather Display */}
+      <WeatherDisplay 
+        weather={weather} 
+        loading={loading} 
+        error={error} 
+        darkMode={darkMode} 
+        forecast={forecast} // Pass forecast data
+      />
     </div>
   );
 }

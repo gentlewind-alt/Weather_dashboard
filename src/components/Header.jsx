@@ -15,6 +15,7 @@ function Header({ darkMode, setDarkMode }) {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        
         onClick={() => setDarkMode(!darkMode)}
         className="text-white pl-1 pr-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
       >

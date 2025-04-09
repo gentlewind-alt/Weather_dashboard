@@ -1,105 +1,112 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Cloud, Wind, Moon, CloudRain } from 'lucide-react';
+import { Wind, Cloud } from 'lucide-react';
 
-function WeatherDisplay({ weather, loading, error, forecast }) {
-    const floatingAnimation = {
-        y: [0, -10, 0],
-        transition: {
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-        }
-    };
+const ForecastCard = ({ day }) => {
+    const date = new Date(day.dt * 1000).toLocaleDateString();
+    const { icon, description } = day.weather[0];
+    const temp = Math.round(day.main.temp);
 
-    const getWeatherIcon = (iconCode) => {
-        return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    return (
+        <div className="flex flex-col items-center bg-white/10 p-3 rounded-xl border border-white/20 text-white">
+            <p className="text-sm text-white/70">{date}</p>
+            <img
+                src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
+                alt={description}
+                className="w-14 h-14 my-2"
+            />
+            <p className="text-lg">{temp}°</p>
+        </div>
+    );
+};
+
+const WeatherInfo = ({ weather }) => {
+    const { icon, description } = weather.weather[0];
+    const temp = Math.round(weather.main.temp);
+    const city = weather.name;
+    const wind = weather.wind.speed;
+    const humidity = weather.main.humidity;
+
+    const floatAnim = {
+        y: [0, -8, 0],
+        transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
     };
 
     return (
-        <div className="max-w-4xl mx-auto mt-10 flex flex-col md:flex-row gap-2 items-start justify-between">
+        <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="flex gap-6 items-center w-full"
+        >
+            <motion.div animate={floatAnim}>
+                <img
+                    src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
+                    alt={description}
+                    className="w-16 h-16"
+                />
+            </motion.div>
+            <div className="flex-1">
+                <h2 className="text-5xl text-white font-light mb-1">{temp}°</h2>
+                <p className="text-xl text-white/80">{city}</p>
+                <p className="capitalize text-lg text-white/60">{description}</p>
+            </div>
+            <div className="flex flex-col gap-3 bg-white/10 p-4 rounded-xl border border-white/20 text-white/80">
+                <div className="flex items-center gap-2">
+                    <Wind className="w-5 h-5" />
+                    <span>{wind} km/h</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Cloud className="w-5 h-5" />
+                    <span>{humidity}%</span>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+function WeatherDisplay({ weather, loading, error, forecast }) {
+    return (
+        <div className="max-w-4xl mx-auto mt-10 flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-1/2">
-                {forecast && forecast.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3 p-4">
-                        {forecast.map((day, index) => (
-                            <div
-                                key={index}
-                                className="flex flex-col items-center bg-white/10 p-3 rounded-2xl backdrop-blur-sm border border-white/20 text-white"
-                            >
-                                <p className="text-sm text-white/80">{new Date(day.dt * 1000).toLocaleDateString()}</p>
-                                <div className="my-2">
-                                    <img
-                                        src={getWeatherIcon(day.weather[0].icon)}
-                                        alt={day.weather[0].description}
-                                        className="w-16 h-16"
-                                    />
-                                </div>
-                                <p className="text-lg">{Math.round(day.main.temp)}°</p>
-                            </div>
+                {forecast?.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                        {forecast.map((day, i) => (
+                            <ForecastCard key={i} day={day} />
                         ))}
                     </div>
                 )}
             </div>
 
-            <div className="w-full md:w-1/2 max-w-sm rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 p-6 flex flex-col items-center justify-center transition-all duration-300 ease-in-out">
+            <div className="w-full md:w-1/2 max-w-sm p-6 rounded-lg bg-white/5 border border-white/10 shadow-md">
                 <AnimatePresence mode="wait">
                     {loading && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="text-center flex-1"
+                            className="text-center"
                         >
-                            <motion.div animate={floatingAnimation}>
-                                <Cloud className="w-16 h-8 mx-auto text-white/80" />
+                            <motion.div animate={{ y: [0, -6, 0], transition: { repeat: Infinity, duration: 1.8 } }}>
+                                <Cloud className="w-12 h-12 mx-auto text-white/60" />
                             </motion.div>
-                            <p className="mt-4 text-lg text-white/80">Searching...</p>
+                            <p className="mt-3 text-white/70">Fetching weather...</p>
                         </motion.div>
                     )}
 
                     {error && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="text-white/80 text-center bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/20 flex-1"
+                            className="p-4 text-white/80 bg-red-500/10 border border-red-400/20 rounded-xl"
                         >
                             {error}
                         </motion.div>
                     )}
 
                     {weather && !loading && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="flex items-center gap-6 w-full"
-                        >
-                            <motion.div animate={floatingAnimation} className="text-white">
-                                <img
-                                    src={getWeatherIcon(weather.weather[0].icon)}
-                                    alt={weather.weather[0].description}
-                                    className="w-16 h-16"
-                                />
-                            </motion.div>
-                            <div className="flex-1">
-                                <h2 className="text-5xl font-light text-white mb-2">
-                                    {Math.round(weather.main.temp)}°
-                                </h2>
-                                <p className="text-white/80 text-xl">{weather.name}</p>
-                                <p className="text-white/60 text-lg capitalize">{weather.weather[0].description}</p>
-                            </div>
-                            <div className="flex flex-col gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/20">
-                                <div className="flex items-center gap-2 text-white/80">
-                                    <Wind className="w-5 h-5" />
-                                    <span>{weather.wind.speed} km/h</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-white/80"> 
-                                    <Cloud className="w-5 h-5" />
-                                    <span>{weather.main.humidity}%</span>
-                                </div>
-                            </div>
-                        </motion.div>
+                        <WeatherInfo weather={weather} />
                     )}
                 </AnimatePresence>
             </div>
